@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "./user.service";
 import { loginSchema, registerSchema } from "./user.validation";
-import CustomError from "../types/customError";
 
 export class UserController {
   static async register(
@@ -10,19 +9,18 @@ export class UserController {
     next: NextFunction
   ) {
     try {
-      console.log(req.body);
       const data = registerSchema.parse(req.body);
       const user = await UserService.register(
         data.username,
         data.password
       );
-      res.status(201).json(user);
-    } catch (err: any) {
-      if (err?.name === "ZodError") {
-        return next(new CustomError(err.message, 400));
-      }
 
-      next(err instanceof CustomError ? err : new CustomError(err.message));
+      res.status(201).json({
+        status: "success",
+        data: user,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 
@@ -37,17 +35,13 @@ export class UserController {
         data.username,
         data.password
       );
-      res.json(result);
-    } catch (err: any) {
-      if (err?.name === "ZodError") {
-        return next(new CustomError(err.message, 400));
-      }
 
-      next(
-        err instanceof CustomError
-          ? err
-          : new CustomError(err.message, 401)
-      );
+      res.json({
+        status: "success",
+        data: result,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 
@@ -58,11 +52,15 @@ export class UserController {
   ) {
     try {
       // @ts-ignore
-      const userId = req.user?.sub;
+      const userId = req.user.sub;
       const user = await UserService.profile(userId);
-      res.json(user);
-    } catch (err: any) {
-      next(err instanceof CustomError ? err : new CustomError(err.message));
+
+      res.json({
+        status: "success",
+        data: user,
+      });
+    } catch (err) {
+      next(err);
     }
   }
 }
