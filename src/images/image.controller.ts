@@ -1,26 +1,33 @@
 import { Request, Response, NextFunction } from "express";
 import { ImageService } from "./image.service";
+import { ImageModel } from "./image.model";
+import CustomError from "../types/customError";
 
 export class ImageController {
   static async upload(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
-        throw new Error("No image uploaded");
+        throw new CustomError("No image uploaded", 400);
       }
 
       // @ts-ignore
-      const userId = req.user.sub;
+      const userId = Number(req.user.sub);
+
+      if (!userId) {
+        throw new CustomError("Unauthorized", 401);
+      }
 
       const result: any = await ImageService.uploadImage(req.file, userId);
 
+      const image = await ImageModel.create({
+        id: result.public_id,
+        url: result.secure_url,
+        userId,
+      });
+
       res.status(201).json({
         status: "success",
-        data: {
-          id: result.public_id,
-          url: result.secure_url,
-          format: result.format,
-          size: result.bytes,
-        },
+        data: image,
       });
     } catch (err) {
       next(err);
@@ -65,4 +72,43 @@ export class ImageController {
       next(err);
     }
   }
+  static async getImages (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      
+      if (page < 1 || limit < 1) {
+        throw new CustomError("Invalid pagination parameters", 400);
+      }
+
+      const skip = (page - 1) * limit;
+
+      // @ts-ignore
+      const userId = Number(req.user.sub);
+
+      if (!userId) {
+        throw new CustomError("Unauthorized", 401);
+      }
+
+      const images = await ImageModel.findByUserIdPaginated(
+        userId,
+        skip,
+        limit
+      );
+
+      res.status(200).json({
+        status: "success",
+        page,
+        limit,
+        count: images.length,
+        data: images,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
 }

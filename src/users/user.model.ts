@@ -2,15 +2,16 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+
 export const UserModel = {
   findByUsername(username: string) {
-    return prisma.users.findUnique({
+    return prisma.user.findUnique({
       where: { username },
     });
   },
 
   findById(id: number) {
-    return prisma.users.findUnique({
+    return prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -21,7 +22,6 @@ export const UserModel = {
   },
 
   create(data: { username: string; password: string }) {
-    return prisma.users.create({ data });
+    return prisma.user.create({ data });
   },
-
 };

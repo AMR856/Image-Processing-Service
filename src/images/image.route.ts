@@ -14,4 +14,5 @@ router.post(
 
 router.post('/transform', ImageController.transform);
 router.get("/:publicId", ImageController.get);
+router.get("/", authMiddleware, ImageController.getImages);
 export default router;
