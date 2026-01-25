@@ -64,6 +64,7 @@ src
 - **Multer**
 - **JWT**
 - **RabbitMQ**
+- **Redis**
 
 ---
 
