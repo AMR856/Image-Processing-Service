@@ -1,100 +1,166 @@
-# Image Processing Service Backend
+# Image Processing Service
 
-Backend for an image processing service (like Cloudinary) using **Node.js, TypeScript, Express, Prisma (SQLite)**.  
-
-Currently, only **user authentication** is implemented.
+A production-ready **Node.js + TypeScript backend** for user authentication and image processing. The project supports secure user accounts, image uploads via Cloudinary, image transformations, pagination, and background processing with a clean layered architecture.
 
 ---
 
-## Project Structure
+## 🚀 Features
+
+- 🔐 **JWT Authentication** (Register / Login / Profile)
+- 🖼️ **Image Uploads** using Multer + Cloudinary
+- 🎨 **Image Transformations** (resize, crop, rotate, format, filters)
+- 📄 **Paginated Image Listing** per user
+- 🧵 **Background Worker** (RabbitMQ-ready)
+- 🧠 **Prisma ORM** with SQLite
+- 🛡️ **Centralized Error Handling**
+- ⚡ **Scalable Architecture** (Controller / Service / Model)
+
+---
+
+## 🏗️ Project Structure
 
 ```
-
-.
-├── config/cloudinary.ts
-├── index.ts
-├── middlewares/auth.ts
-├── types/customError.ts
-├── types/express.d.ts
-├── users/
+src
+├── cache
+│   └── redis.ts
+├── config
+│   └── cloudinary.ts
+├── images
+│   ├── image.controller.ts
+│   ├── image.model.ts
+│   ├── image.route.ts
+│   └── image.service.ts
+├── users
 │   ├── user.controller.ts
 │   ├── user.model.ts
 │   ├── user.route.ts
 │   ├── user.service.ts
 │   └── user.validation.ts
-└── utils/
-├── errorHandler.ts
-├── hash.ts
-└── jwt.ts
-
-````
+├── middlewares
+│   └── auth.ts
+├── utils
+│   ├── errorHandler.ts
+│   ├── hash.ts
+│   ├── jwt.ts
+│   ├── multer.ts
+│   └── rabbitmq.ts
+├── types
+│   ├── customError.ts
+│   └── express.d.ts
+├── index.ts
+└── worker.ts
+```
 
 ---
 
-## Features Implemented
+## 🧩 Tech Stack
 
-- User Registration & Login  
-- JWT-based Authentication  
-- Password hashing  
-- Express middleware for protected routes
+- **Node.js**
+- **TypeScript**
+- **Express**
+- **Prisma ORM**
+- **SQLite**
+- **Cloudinary**
+- **Multer**
+- **JWT**
+- **RabbitMQ**
 
 ---
 
-## Setup
+## ⚙️ Environment Variables
 
-1. Install dependencies:
+Create a `.env` file:
+
+```env
+DATABASE_URL="file:./dev.db"
+JWT_SECRET=your_jwt_secret
+CLOUDINARY_CLOUD_NAME=xxxx
+CLOUDINARY_API_KEY=xxxx
+CLOUDINARY_API_SECRET=xxxx
+```
+
+---
+
+## 📦 Installation
 
 ```bash
 npm install
-````
-
-2. Create `.env`:
-
-```
-JWT_SECRET=your_jwt_secret
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-3. Setup Prisma:
+Generate Prisma client:
 
 ```bash
-mkdir -p prisma
-touch prisma/dev.db
-npx prisma db push
+npx prisma generate
 ```
 
-4. Run:
+Apply database schema:
 
 ```bash
-npx ts-node src/index.ts
-# or compile first
-npx tsc
-node dist/index.js
+npx prisma migrate dev --name init
 ```
 
 ---
 
-## API Endpoints
+## ▶️ Running the Project
 
-### Auth
+### Development
 
-* **Register:** `POST /register`
-  Body: `{ "username": "user1", "password": "password123" }`
-  Response: user object + JWT
+```bash
+npm run dev
+```
 
-* **Login:** `POST /login`
-  Body: `{ "username": "user1", "password": "password123" }`
-  Response: user object + JWT
+### Production
 
-> Protected routes require `Authorization: Bearer <JWT>` header.
+```bash
+npm run build
+npm start
+```
+
+### Worker (Background Jobs)
+
+```bash
+ts-node worker.ts
+```
+
+---
+
+## 🔑 Authentication Endpoints
+
+| Method | Endpoint | Description |
+|------|--------|------------|
+| POST | `/users/register` | Register user |
+| POST | `/users/login` | Login |
+| GET | `/users/profile` | Get profile (JWT required) |
+
+---
+
+## 🖼️ Image Endpoints
+
+| Method | Endpoint | Description |
+|------|--------|------------|
+| POST | `/images` | Upload image (JWT + multipart) |
+| POST | `/images/transform` | Transform image |
+| GET | `/images?page=1&limit=10` | Paginated images (JWT) |
+| GET | `/images/:publicId` | Get image by ID |
+
+---
+
+## 🧠 Architecture Principles
+
+- **Controllers**: HTTP layer only
+- **Services**: Business logic
+- **Models**: Database access (Prisma)
+- **Utils**: Shared helpers
+- **Middlewares**: Auth & validation
 
 
-## Next Steps
+## ❌ Error Handling
 
-* Image upload & retrieval
-* Image transformations (resize, crop, rotate, filters, format conversion)
-* Cloud storage integration (S3, Cloudflare R2, GCP)
-* Async processing & caching
+All errors go through a centralized error handler:
 
+```json
+{
+  "status": "error",
+  "message": "Error description"
+}
+```
