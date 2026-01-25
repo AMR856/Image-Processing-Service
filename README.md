@@ -164,3 +164,5 @@ All errors go through a centralized error handler:
   "message": "Error description"
 }
 ```
+
+Solution for Image Processing Service Project https://roadmap.sh/projects/image-processing-service
