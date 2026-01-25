@@ -1,5 +1,7 @@
+import { getTransformKey, redis } from "../cache/redis";
 import cloudinary from "../config/cloudinary";
 import CustomError from "../types/customError";
+import { publishTransformJob } from "../utils/rabbitmq";
 
 export class ImageService {
   static async uploadImage(file: Express.Multer.File, userId: number) {
@@ -25,50 +27,44 @@ export class ImageService {
   }
 
   static async transform(transformations: any, id: string): Promise<string> {
-    if (!id) {
-      throw new CustomError("Image id is required", 400);
-    }
+    if (!id) throw new Error("Image id is required");
 
-    if (!transformations) {
-      throw new CustomError("Transformations are required", 400);
-    }
+    const cacheKey = getTransformKey(id, transformations);
+    const cached = await redis.get(cacheKey);
+    if (cached) return cached;
 
-    const cloudinaryTransforms: any[] = [];
+    const t: any[] = [];
 
     if (transformations.resize) {
-      cloudinaryTransforms.push({
-        width: transformations.resize.width,
-        height: transformations.resize.height,
-        crop: "scale",
-      });
-    }
-
-    if (transformations.crop) {
-      cloudinaryTransforms.push({
-        crop: "crop",
-        width: transformations.crop.width,
-        height: transformations.crop.height,
-        x: transformations.crop.x,
-        y: transformations.crop.y,
+      t.push({
+        crop: "fill",
+        width: Number(transformations.resize.width),
+        height: Number(transformations.resize.height),
       });
     }
 
     if (transformations.rotate) {
-      cloudinaryTransforms.push({ angle: transformations.rotate });
+      t.push({ angle: Number(transformations.rotate) });
     }
 
     if (transformations.filters?.grayscale) {
-      cloudinaryTransforms.push({ effect: "grayscale" });
+      t.push({ effect: "grayscale" });
     }
 
     if (transformations.filters?.sepia) {
-      cloudinaryTransforms.push({ effect: "sepia" });
+      t.push({ effect: "sepia" });
     }
 
-    return cloudinary.url(id, {
-      transformation: cloudinaryTransforms,
-      fetch_format: transformations.format || "auto",
+    const url = cloudinary.url(id, {
+      transformation: t,
+      format: transformations.format,
       secure: true,
     });
+
+    await redis.set(cacheKey, url);
+
+    publishTransformJob({ imageId: id, transformations, url });
+
+    return url;
   }
 }

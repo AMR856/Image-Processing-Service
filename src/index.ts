@@ -6,6 +6,9 @@ import express from "express";
 import userRouter from "./users/user.route";
 import imageRouter from './images/image.route';
 import bodyParser from "body-parser";
+import { connectRabbitMQ } from './utils/rabbitmq';
+
+
 const port = process.env.PORT || 5000;
 const app = express();
 
@@ -14,10 +17,15 @@ app.use(bodyParser.json());
 app.use("/users", userRouter);
 app.use('/images', imageRouter);
 
-app.listen(port, () =>
-  console.log(`Server started on http://localhost:${port}`)
-);
+bootstrap();
+
 // npx nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts
 
+async function bootstrap() {
+  await connectRabbitMQ();
 
+  app.listen(port, () =>
+    console.log(`Server started on http://localhost:${port}`)
+  );
+}
 

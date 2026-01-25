@@ -45,15 +45,15 @@ export class ImageController {
 
   static async transform(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      const { transformations } = req.body;
+      const { id } = req.query;
+      const transformations = req.body.transformations;
 
+      
       const transformedUrl = await ImageService.transform(
         transformations,
         // @ts-ignore
         id
       );
-      console.log(transformedUrl);
       res.json({
         status: "success",
         data: {

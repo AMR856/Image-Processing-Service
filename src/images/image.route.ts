@@ -12,6 +12,6 @@ router.post(
   ImageController.upload
 );
 
-router.post('/:id/transform', ImageController.transform);
+router.post('/transform', ImageController.transform);
 router.get("/:publicId", ImageController.get);
 export default router;
