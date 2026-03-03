@@ -43,5 +43,5 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
   },
-  "include": ["src", "types/**/*.d.ts"]
+  "include": ["src", "src/types/**/*.d.ts"]
 }

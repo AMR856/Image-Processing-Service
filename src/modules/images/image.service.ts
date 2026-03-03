@@ -1,7 +1,7 @@
-import { getTransformKey, redis } from "../cache/redis";
-import cloudinary from "../config/cloudinary";
-import CustomError from "../types/customError";
-import { publishTransformJob } from "../utils/rabbitmq";
+import { getTransformKey, redis } from "../../cache/redis";
+import cloudinary from "../../config/cloudinary";
+import { publishTransformJob } from "../../queue.ts/rabbitmq";
+import CustomError from "../../types/customError";
 
 export class ImageService {
   static async uploadImage(file: Express.Multer.File, userId: number) {

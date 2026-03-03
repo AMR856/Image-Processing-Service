@@ -4,15 +4,9 @@ import { HttpStatusText } from "../../types/HTTPStatusText";
 import { AuthInput } from "./user.validation";
 
 export class UserController {
-  static async register(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  static async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await UserService.register(
-        req.validated!.body as AuthInput
-      );
+      const user = await UserService.register(res.locals.body as AuthInput);
 
       res.status(201).json({
         status: HttpStatusText.SUCCESS,
@@ -23,16 +17,15 @@ export class UserController {
     }
   }
 
-  static async login(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await UserService.login(
-        req.validated!.body as AuthInput
-      );
-
+      const result = await UserService.login(res.locals.body as AuthInput);
+      res.cookie("token", result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
       res.json({
         status: HttpStatusText.SUCCESS,
         data: result,
@@ -42,11 +35,7 @@ export class UserController {
     }
   }
 
-  static async profile(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+  static async profile(req: Request, res: Response, next: NextFunction) {
     try {
       console.log(res.locals.user);
       const userId = res.locals.user;
