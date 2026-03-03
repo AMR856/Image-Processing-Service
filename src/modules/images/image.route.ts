@@ -1,18 +1,19 @@
 import { Router } from "express";
 import { ImageController } from "./image.controller";
-import { upload } from "../utils/multer";
-import { authMiddleware } from "../middlewares/auth";
+import { auth } from "../../middlewares/auth";
+import { upload } from "../../storage/multer";
 
 const router = Router();
 
 router.post(
   "/",
-  authMiddleware,
+  auth,
   upload.single("image"),
   ImageController.upload
 );
 
 router.post('/transform', ImageController.transform);
 router.get("/:publicId", ImageController.get);
-router.get("/", authMiddleware, ImageController.getImages);
+router.get("/", auth, ImageController.getImages);
 export default router;
+

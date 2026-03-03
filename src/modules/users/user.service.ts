@@ -1,19 +1,22 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserModel } from "./user.model";
-import CustomError from "../types/customError";
+import CustomError from "../../types/customError";
+import { HttpStatusText } from "../../types/HTTPStatusText";
+import { AuthInput } from "./user.validation";
+import { StringValue } from "ms";
 
 export class UserService {
-  static async register(username: string, password: string) {
-    const existing = await UserModel.findByUsername(username);
+  static async register(data: AuthInput) {
+    const existing = await UserModel.findByEmail(data.email);
     if (existing) {
-      throw new CustomError("User already exists", 409);
+      throw new CustomError("User already exists", 409, HttpStatusText.FAIL);
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(data.password, 10);
 
     const user = await UserModel.create({
-      username,
+      email: data.email,
       password: hashed,
     });
 
@@ -23,21 +26,21 @@ export class UserService {
     };
   }
 
-  static async login(username: string, password: string) {
-    const user = await UserModel.findByUsername(username);
+  static async login(data: AuthInput) {
+    const user = await UserModel.findByEmail(data.email);
     if (!user) {
-      throw new CustomError("Invalid credentials", 401);
+      throw new CustomError("Invalid credentials", 401, HttpStatusText.FAIL);
     }
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(data.password, user.password);
     if (!valid) {
-      throw new CustomError("Invalid credentials", 401);
+      throw new CustomError("Invalid credentials", 401, HttpStatusText.FAIL);
     }
-
+    const expiresIn = process.env.JWT_EXPIRES_IN as StringValue || "1d";
     const token = jwt.sign(
       { sub: user.id, username: user.username },
       process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
+      { expiresIn },
     );
 
     return { token };
@@ -46,9 +49,8 @@ export class UserService {
   static async profile(userId: number) {
     const user = await UserModel.findById(userId);
     if (!user) {
-      throw new CustomError("User not found", 404);
+      throw new CustomError("User not found", 404, HttpStatusText.FAIL);
     }
-
     return user;
   }
 }

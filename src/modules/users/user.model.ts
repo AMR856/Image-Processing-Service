@@ -4,9 +4,9 @@ const prisma = new PrismaClient();
 
 
 export const UserModel = {
-  findByUsername(username: string) {
+  findByEmail(email: string) {
     return prisma.user.findUnique({
-      where: { username },
+      where: { email },
     });
   },
 
@@ -21,7 +21,7 @@ export const UserModel = {
     });
   },
 
-  create(data: { username: string; password: string }) {
+  create(data: { email: string; password: string }) {
     return prisma.user.create({ data });
   },
 };

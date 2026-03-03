@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "./user.service";
-import { loginSchema, registerSchema } from "./user.validation";
+import { HttpStatusText } from "../../types/HTTPStatusText";
+import { AuthInput } from "./user.validation";
 
 export class UserController {
   static async register(
@@ -9,14 +10,12 @@ export class UserController {
     next: NextFunction
   ) {
     try {
-      const data = registerSchema.parse(req.body);
       const user = await UserService.register(
-        data.username,
-        data.password
+        req.validated!.body as AuthInput
       );
 
       res.status(201).json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         data: user,
       });
     } catch (err) {
@@ -30,14 +29,12 @@ export class UserController {
     next: NextFunction
   ) {
     try {
-      const data = loginSchema.parse(req.body);
       const result = await UserService.login(
-        data.username,
-        data.password
+        req.validated!.body as AuthInput
       );
 
       res.json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         data: result,
       });
     } catch (err) {
@@ -51,12 +48,12 @@ export class UserController {
     next: NextFunction
   ) {
     try {
-      // @ts-ignore
-      const userId = req.user.sub;
+      console.log(res.locals.user);
+      const userId = res.locals.user;
       const user = await UserService.profile(userId);
 
       res.json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         data: user,
       });
     } catch (err) {

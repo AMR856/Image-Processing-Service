@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ImageService } from "./image.service";
 import { ImageModel } from "./image.model";
-import CustomError from "../types/customError";
+import CustomError from "../../types/customError";
+import { HttpStatusText } from "../../types/HTTPStatusText";
 
 export class ImageController {
   static async upload(req: Request, res: Response, next: NextFunction) {
@@ -14,7 +15,7 @@ export class ImageController {
       const userId = Number(req.user.sub);
 
       if (!userId) {
-        throw new CustomError("Unauthorized", 401);
+        throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
       }
 
       const result: any = await ImageService.uploadImage(req.file, userId);
@@ -26,7 +27,7 @@ export class ImageController {
       });
 
       res.status(201).json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         data: image,
       });
     } catch (err) {
@@ -42,7 +43,7 @@ export class ImageController {
       const url = await ImageService.getImage(publicId);
 
       res.json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         data: { url },
       });
     } catch (err) {
@@ -62,7 +63,7 @@ export class ImageController {
         id
       );
       res.json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         data: {
           imageId: id,
           url: transformedUrl,
@@ -82,7 +83,7 @@ export class ImageController {
       const limit = Number(req.query.limit) || 10;
       
       if (page < 1 || limit < 1) {
-        throw new CustomError("Invalid pagination parameters", 400);
+        throw new CustomError("Invalid pagination parameters", 400, HttpStatusText.FAIL);
       }
 
       const skip = (page - 1) * limit;
@@ -91,7 +92,7 @@ export class ImageController {
       const userId = Number(req.user.sub);
 
       if (!userId) {
-        throw new CustomError("Unauthorized", 401);
+        throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
       }
 
       const images = await ImageModel.findByUserIdPaginated(
@@ -101,7 +102,7 @@ export class ImageController {
       );
 
       res.status(200).json({
-        status: "success",
+        status: HttpStatusText.SUCCESS,
         page,
         limit,
         count: images.length,
