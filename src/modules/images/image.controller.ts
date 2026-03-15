@@ -1,34 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import { ImageService } from "./image.service";
-import { ImageModel } from "./image.model";
-import CustomError from "../../types/customError";
 import { HttpStatusText } from "../../types/HTTPStatusText";
 
 export class ImageController {
   static async upload(req: Request, res: Response, next: NextFunction) {
     try {
-      if (!req.file) {
-        throw new CustomError("No image uploaded", 400);
-      }
+      const currentUser = res.locals.user;
+      const userId = Number(currentUser?.id ?? currentUser?.sub ?? currentUser);
 
-      // @ts-ignore
-      const userId = Number(req.user.sub);
+      const result = await ImageService.uploadImage(req.file as Express.Multer.File, userId);
 
-      if (!userId) {
-        throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
-      }
-
-      const result: any = await ImageService.uploadImage(req.file, userId);
-
-      const image = await ImageModel.create({
-        id: result.public_id,
-        url: result.secure_url,
-        userId,
-      });
-
-      res.status(201).json({
+      res.status(202).json({
         status: HttpStatusText.SUCCESS,
-        data: image,
+        data: result,
       });
     } catch (err) {
       next(err);
@@ -37,10 +21,10 @@ export class ImageController {
 
   static async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const { publicId } = req.params;
+      const params = (res.locals.params as { publicId?: string }) || req.params;
+      const publicId = params?.publicId;
 
-      // @ts-ignore
-      const url = await ImageService.getImage(publicId);
+      const url = await ImageService.getImage(publicId as string);
 
       res.json({
         status: HttpStatusText.SUCCESS,
@@ -53,53 +37,37 @@ export class ImageController {
 
   static async transform(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.query;
-      const transformations = req.body.transformations;
+      const query = (res.locals.query as { id?: string }) || req.query;
+      const body = (res.locals.body as { transformations?: any }) || req.body;
 
-      
-      const transformedUrl = await ImageService.transform(
-        transformations,
-        // @ts-ignore
-        id
-      );
+      const id = String(query.id || "");
+      const transformations = body.transformations;
+
+      const url = await ImageService.transform(transformations, id);
+
       res.json({
         status: HttpStatusText.SUCCESS,
         data: {
           imageId: id,
-          url: transformedUrl,
+          url,
         },
       });
     } catch (err) {
       next(err);
     }
   }
-  static async getImages (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
+
+  static async getImages(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = Number(req.query.page) || 1;
-      const limit = Number(req.query.limit) || 10;
-      
-      if (page < 1 || limit < 1) {
-        throw new CustomError("Invalid pagination parameters", 400, HttpStatusText.FAIL);
-      }
+      const query =
+        (res.locals.query as { page?: number; limit?: number }) || req.query;
+      const page = Number(query.page || 1);
+      const limit = Number(query.limit || 10);
 
-      const skip = (page - 1) * limit;
+      const currentUser = res.locals.user;
+      const userId = Number(currentUser?.id ?? currentUser?.sub ?? currentUser);
 
-      // @ts-ignore
-      const userId = Number(req.user.sub);
-
-      if (!userId) {
-        throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
-      }
-
-      const images = await ImageModel.findByUserIdPaginated(
-        userId,
-        skip,
-        limit
-      );
+      const images = await ImageService.getImages(userId, page, limit);
 
       res.status(200).json({
         status: HttpStatusText.SUCCESS,
@@ -111,5 +79,22 @@ export class ImageController {
     } catch (err) {
       next(err);
     }
-  };
+  }
+
+  static async getUploadStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const params = (res.locals.params as { id?: string }) || req.params;
+      const id = params?.id;
+
+      const status = await ImageService.getUploadStatus(id as string);
+
+      res.json({
+        status: HttpStatusText.SUCCESS,
+        data: status,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
 }

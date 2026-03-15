@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "./user.service";
+import CustomError from "../../types/customError";
 import { HttpStatusText } from "../../types/HTTPStatusText";
 import { AuthInput } from "./user.validation";
 
@@ -37,8 +38,13 @@ export class UserController {
 
   static async profile(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log(res.locals.user);
-      const userId = res.locals.user;
+      const currentUser = res.locals.user;
+      const userId = Number(currentUser?.id ?? currentUser?.sub ?? currentUser);
+
+      if (!userId) {
+        throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
+      }
+
       const user = await UserService.profile(userId);
 
       res.json({

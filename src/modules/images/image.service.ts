@@ -1,33 +1,63 @@
 import { getTransformKey, redis } from "../../cache/redis";
 import cloudinary from "../../config/cloudinary";
-import { publishTransformJob } from "../../queue.ts/rabbitmq";
+import { publishTransformJob, publishUploadJob } from "../../queue/rabbitmq";
 import CustomError from "../../types/customError";
+import { HttpStatusText } from "../../types/HTTPStatusText";
+import { ImageModel } from "./image.model";
 
 export class ImageService {
   static async uploadImage(file: Express.Multer.File, userId: number) {
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          { folder: `images/${userId}` },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        )
-        .end(file.buffer);
-    });
+    if (!file) {
+      throw new CustomError("No image uploaded", 400, HttpStatusText.FAIL);
+    }
+
+    if (!userId) {
+      throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
+    }
+
+    const pendingImage = await ImageModel.createPending(userId);
+
+    const job = {
+      uploadId: pendingImage.id,
+      userId,
+      fileBuffer: file.buffer.toString("base64"),
+    };
+
+    publishUploadJob(job);
+
+    return {
+      uploadId: pendingImage.id,
+      status: pendingImage.status,
+      message: "Image upload enqueued, processing asynchronously",
+    };
   }
 
   static async getImage(publicId: string) {
-    if (!publicId) {
-      throw new CustomError("Image publicId is required", 400);
+    if (!publicId || publicId.trim() === ":publicId") {
+      throw new CustomError("Image publicId is required", 400, HttpStatusText.FAIL);
+    }
+
+    const image = await ImageModel.findByPublicId(publicId);
+    if (!image) {
+      throw new CustomError("Image not found", 404, HttpStatusText.FAIL);
     }
 
     return cloudinary.url(publicId);
   }
 
   static async transform(transformations: any, id: string): Promise<string> {
-    if (!id) throw new Error("Image id is required");
+    if (!id) {
+      throw new CustomError("Image id is required", 400, HttpStatusText.FAIL);
+    }
+
+    if (!transformations) {
+      throw new CustomError("Transformations are required", 400, HttpStatusText.FAIL);
+    }
+
+    const image = await ImageModel.findByPublicId(id);
+    if (!image) {
+      throw new CustomError("Image not found", 404, HttpStatusText.FAIL);
+    }
 
     const cacheKey = getTransformKey(id, transformations);
     const cached = await redis.get(cacheKey);
@@ -66,5 +96,40 @@ export class ImageService {
     publishTransformJob({ imageId: id, transformations, url });
 
     return url;
+  }
+
+  static async getUploadStatus(uploadId: string) {
+    if (!uploadId) {
+      throw new CustomError("Upload ID is required", 400, HttpStatusText.FAIL);
+    }
+
+    const image = await ImageModel.findById(uploadId);
+    if (!image) {
+      throw new CustomError("Upload not found", 404, HttpStatusText.FAIL);
+    }
+
+    return {
+      id: image.id,
+      status: image.status,
+      publicId: image.publicId,
+      url: image.url,
+    };
+  }
+
+  static async getImages(userId: number, page: number, limit: number) {
+    if (!userId || Number.isNaN(userId)) {
+      throw new CustomError("Unauthorized", 401, HttpStatusText.FAIL);
+    }
+
+    const p = Number(page);
+    const l = Number(limit);
+
+    if (!Number.isInteger(p) || p < 1 || !Number.isInteger(l) || l < 1) {
+      throw new CustomError("Invalid pagination parameters", 400, HttpStatusText.FAIL);
+    }
+
+    const skip = (p - 1) * l;
+
+    return ImageModel.findByUserIdPaginated(userId, skip, l);
   }
 }

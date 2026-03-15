@@ -15,7 +15,7 @@ export async function verifyToken(token?: string) {
   } catch {
     throw new CustomError("Invalid or expired token", 401, HttpStatusText.FAIL);
   }
-
+  console.log(decodedToken);
   const user = await UserModel.findById(decodedToken.id);
   if (!user) throw new CustomError("The user belonging to this token no longer exists", 401, HttpStatusText.FAIL);
 

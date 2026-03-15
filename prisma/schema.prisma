@@ -17,8 +17,10 @@ model User {
 }
 
 model Image {
-  id        String   @id
-  url       String   @unique
+  id        String   @id @default(uuid())
+  publicId  String?  @unique
+  url       String?  @unique
+  status    String   @default("pending")
   userId    Int
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
