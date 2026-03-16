@@ -20,37 +20,57 @@ A production-ready **Node.js + TypeScript backend** for user authentication and 
 ## 🏗️ Project Structure
 
 ```
-src
-├── cache
-│   └── redis.ts
-├── config
-│   └── cloudinary.ts
-├── images
-│   ├── image.controller.ts
-│   ├── image.model.ts
-│   ├── image.route.ts
-│   └── image.service.ts
-├── users
-│   ├── user.controller.ts
-│   ├── user.model.ts
-│   ├── user.route.ts
-│   ├── user.service.ts
-│   └── user.validation.ts
-├── middlewares
-│   └── auth.ts
-├── utils
-│   ├── errorHandler.ts
-│   ├── hash.ts
-│   ├── jwt.ts
-│   ├── multer.ts
-│   └── rabbitmq.ts
-├── types
-│   ├── customError.ts
-│   └── express.d.ts
-├── server.ts
-├── app.ts
-└── worker.ts
+backend
+├── package.json
+├── tsconfig.json
+├── jest.config.ts
+├── prisma
+│   ├── schema.prisma
+│   └── migrations
+├── src
+│   ├── app.ts
+│   ├── server.ts
+│   ├── worker.ts
+│   ├── cache
+│   │   └── redis.ts
+│   ├── config
+│   │   └── cloudinary.ts
+│   ├── middlewares
+│   │   ├── auth.ts
+│   │   ├── requestLogger.ts
+│   │   └── validate.ts
+│   ├── modules
+│   │   ├── users
+│   │   │   ├── user.controller.ts
+│   │   │   ├── user.model.ts
+│   │   │   ├── user.route.ts
+│   │   │   ├── user.service.ts
+│   │   │   └── user.validation.ts
+│   │   └── images
+│   │       ├── image.controller.ts
+│   │       ├── image.model.ts
+│   │       ├── image.route.ts
+│   │       ├── image.service.ts
+│   │       └── image.validation.ts
+│   ├── queue
+│   │   └── rabbitmq.ts
+│   ├── storage
+│   │   └── multer.ts
+│   ├── types
+│   │   ├── customError.ts
+│   │   └── HTTPStatusText.ts
+│   └── utils
+│       ├── errorHandler.ts
+│       ├── hash.ts
+│       ├── jwt.ts
+│       ├── logger.ts
+│       ├── rateLimiter.ts
+│       └── verifyToken.ts
 ```
+
+- `backend/src/app.ts` sets up routes and middleware
+- `backend/src/server.ts` starts the HTTP server
+- `backend/src/worker.ts` runs background queue jobs
 
 ---
 
@@ -105,23 +125,35 @@ npx prisma migrate dev --name init
 
 ## ▶️ Running the Project
 
-### Development
+### Backend Development
 
 ```bash
+cd backend
+npm install
 npm run dev
 ```
 
-### Production
+### Backend Production
 
 ```bash
+cd backend
 npm run build
 npm start
 ```
 
-### Worker (Background Jobs)
+### Backend Worker (Background Jobs)
 
 ```bash
-ts-node worker.ts
+cd backend
+npm run start_worker
+```
+
+### Frontend (Next.js)
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
