@@ -45,12 +45,12 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "test": "jest --runInBand --detectOpenHandles",
+    "test": "jest --runInBand --detectOpenHandles --coverage",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "start_worker": "nodemon --watch 'src/worker.ts' --exec 'ts-node' src/worker.ts",
-    "loadtest": "node scripts/loadtest.js"
+    "loadtest": "k6 run scripts/loadtest.k6.js"
   },
   "keywords": [],
   "author": "",

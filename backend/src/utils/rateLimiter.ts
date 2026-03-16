@@ -10,7 +10,8 @@ export class RateLimiter {
   private limiters: Map<string, RateLimitRequestHandler> = new Map();
 
   createLimiter(key: string, options: LimiterOptions) {
-    if (this.limiters.has(key)) throw new Error(`Limiter for ${key} already exists`);
+    if (this.limiters.has(key))
+      throw new Error(`Limiter for ${key} already exists`);
 
     const limiter = rateLimit({
       windowMs: options.windowMs,
@@ -35,18 +36,18 @@ export const limiter = new RateLimiter();
 
 limiter.createLimiter("login", {
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: process.env.NODE_ENV === "production" ? 1000 : 10,
   message: "Too many login attempts, please try again later",
 });
 
 limiter.createLimiter("register", {
   windowMs: 60 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === "production" ? 1000 : 10,
   message: "Too many registration attempts, please try again later",
 });
 
 limiter.createLimiter("profile", {
   windowMs: 60 * 1000,
-  max: 20,
+  max: process.env.NODE_ENV === "production" ? 1000 : 10,
   message: "Too many profile requests, slow down!",
 });
