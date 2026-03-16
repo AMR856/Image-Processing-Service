@@ -4,13 +4,13 @@ dotenv.config();
 import app from "./app";
 import { connectRabbitMQ } from "./queue/rabbitmq";
 
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 async function bootstrap() {
   await connectRabbitMQ();
 
-  const server = app.listen(port, () =>
-    console.log(`Server started on http://localhost:${port}`)
+  const server = app.listen(PORT, () =>
+    console.log(`Server started on http://localhost:${PORT}`)
   );
 
   const shutdown = (signal: string) => {

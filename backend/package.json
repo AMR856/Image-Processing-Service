@@ -50,7 +50,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "start_worker": "nodemon --watch 'src/worker.ts' --exec 'ts-node' src/worker.ts",
-    "loadtest": "k6 run scripts/loadtest.k6.js"
+    "loadtest": "k6 run scripts/loadtest.k6.js",
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
