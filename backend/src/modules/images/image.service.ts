@@ -73,7 +73,7 @@ export class ImageService {
       });
     }
 
-    if (transformations.rotate) {
+    if (transformations.rotate && transformations.rotate !== 0) {
       t.push({ angle: Number(transformations.rotate) });
     }
 

@@ -8,7 +8,10 @@ export class ImageController {
       const currentUser = res.locals.user;
       const userId = Number(currentUser?.id ?? currentUser?.sub ?? currentUser);
 
-      const result = await ImageService.uploadImage(req.file as Express.Multer.File, userId);
+      const result = await ImageService.uploadImage(
+        req.file as Express.Multer.File,
+        userId,
+      );
 
       res.status(202).json({
         status: HttpStatusText.SUCCESS,
@@ -21,10 +24,9 @@ export class ImageController {
 
   static async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const params = (res.locals.params as { publicId?: string }) || req.params;
-      const publicId = params?.publicId;
+      const publicId = req.query.publicId as string;
 
-      const url = await ImageService.getImage(publicId as string);
+      const url = await ImageService.getImage(publicId);
 
       res.json({
         status: HttpStatusText.SUCCESS,
@@ -81,7 +83,11 @@ export class ImageController {
     }
   }
 
-  static async getUploadStatus(req: Request, res: Response, next: NextFunction) {
+  static async getUploadStatus(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
       const params = (res.locals.params as { id?: string }) || req.params;
       const id = params?.id;
@@ -96,5 +102,4 @@ export class ImageController {
       next(err);
     }
   }
-
 }

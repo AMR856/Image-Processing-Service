@@ -36,16 +36,19 @@ export class ImageModel {
     });
   }
 
-static updateStatus(id: string, data: { publicId?: string; url?: string; status: string }) {
-  return prisma.image.update({
-    where: { id },
-    data: {
-      ...(data.publicId !== undefined && { publicId: data.publicId }),
-      ...(data.url !== undefined && { url: data.url }),
-      status: data.status,
-    },
-  });
-}
+  static updateStatus(
+    id: string,
+    data: { publicId?: string; url?: string; status: string },
+  ) {
+    return prisma.image.update({
+      where: { id },
+      data: {
+        ...(data.publicId !== undefined && { publicId: data.publicId }),
+        ...(data.url !== undefined && { url: data.url }),
+        status: data.status,
+      },
+    });
+  }
 
   static create(data: { publicId: string; url: string; userId: number }) {
     return prisma.image.create({
@@ -60,4 +63,3 @@ static updateStatus(id: string, data: { publicId?: string; url?: string; status:
     });
   }
 }
-

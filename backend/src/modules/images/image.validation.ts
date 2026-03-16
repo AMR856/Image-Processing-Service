@@ -31,7 +31,7 @@ export class ImageValidationSchemas {
             height: z.number().int().positive(),
           })
           .optional(),
-        rotate: z.number().int().positive().optional(),
+        rotate: z.number().int().nonnegative().optional(),
         format: z.string().optional(),
         filters: z
           .object({

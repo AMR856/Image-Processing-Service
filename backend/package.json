@@ -49,6 +49,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "start_worker": "nodemon --watch 'src/worker.ts' --exec 'ts-node' src/worker.ts",
     "loadtest": "node scripts/loadtest.js"
   },
   "keywords": [],

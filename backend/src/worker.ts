@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import amqp from "amqplib";
 import cloudinary from "./config/cloudinary";
 import { ImageModel } from "./modules/images/image.model";
@@ -77,3 +79,4 @@ async function startWorker() {
 }
 
 startWorker();
+// nodemon --watch 'src/worker.ts' --exec 'ts-node' src/worker.ts

@@ -7,12 +7,7 @@ import { ImageValidationSchemas } from "./image.validation";
 
 const router = Router();
 
-router.post(
-  "/",
-  auth,
-  upload.single("image"),
-  ImageController.upload
-);
+router.post("/", auth, upload.single("image"), ImageController.upload);
 
 router.post(
   "/transform",
@@ -20,27 +15,26 @@ router.post(
     query: ImageValidationSchemas.transformQuery,
     body: ImageValidationSchemas.transformBody,
   }),
-  ImageController.transform
+  ImageController.transform,
 );
 
 router.get(
-  "/:publicId",
-  validate({ params: ImageValidationSchemas.publicIdParam }),
-  ImageController.get
+  "/get-image",
+  validate({ query: ImageValidationSchemas.publicIdParam }),
+  ImageController.get,
 );
 
 router.get(
   "/:id/status",
   validate({ params: ImageValidationSchemas.statusIdParam }),
-  ImageController.getUploadStatus
+  ImageController.getUploadStatus,
 );
 
 router.get(
   "/",
   auth,
   validate({ query: ImageValidationSchemas.paginationQuery }),
-  ImageController.getImages
+  ImageController.getImages,
 );
 
 export default router;
-
