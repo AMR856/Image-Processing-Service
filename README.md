@@ -47,7 +47,8 @@ src
 ├── types
 │   ├── customError.ts
 │   └── express.d.ts
-├── index.ts
+├── server.ts
+├── app.ts
 └── worker.ts
 ```
 
@@ -122,6 +123,30 @@ npm start
 ```bash
 ts-node worker.ts
 ```
+
+---
+
+## 🧩 Frontend (Next.js) setup
+
+The repository now includes a minimal GitHub-themed dark frontend in `frontend/` that uses all backend routes.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- Frontend URL: http://localhost:3000
+- API base URL: http://localhost:5000 (adjust with `NEXT_PUBLIC_API_BASE_URL` in `frontend/.env.local`)
+
+### Frontend features
+
+- Register / Login / Profile (`/users/*`)
+- Image upload (`POST /images`)
+- Upload status (`GET /images/:id/status`)
+- Get image by public ID (`GET /images/:publicId`)
+- Paginated images (`GET /images?page=&limit=`)
+- Transform image (`POST /images/transform`)
 
 ---
 
