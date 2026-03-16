@@ -24,7 +24,7 @@ export class UserController {
       res.cookie("token", result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: (process.env.SAME_SITE || "lax") as "lax" | "strict" | "none",
         maxAge: 24 * 60 * 60 * 1000,
       });
       res.json({
