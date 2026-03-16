@@ -4,20 +4,20 @@ A production-ready **Node.js + TypeScript backend** for user authentication and 
 
 ---
 
-## 🚀 Features
+##  Features
 
-- 🔐 **JWT Authentication** (Register / Login / Profile)
-- 🖼️ **Image Uploads** using Multer + Cloudinary
-- 🎨 **Image Transformations** (resize, crop, rotate, format, filters)
-- 📄 **Paginated Image Listing** per user
-- 🧵 **Background Worker** (RabbitMQ-ready)
-- 🧠 **Prisma ORM** with SQLite
-- 🛡️ **Centralized Error Handling**
-- ⚡ **Scalable Architecture** (Controller / Service / Model)
+- **JWT Authentication** (Register / Login / Profile)
+- **Image Uploads** using Multer + Cloudinary
+- **Image Transformations** (resize, crop, rotate, format, filters)
+- **Paginated Image Listing** per user
+- **Background Worker** (RabbitMQ-ready)
+- **Prisma ORM** with SQLite
+- **Centralized Error Handling**
+  **Scalable Architecture** (Controller / Service / Model)
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 backend
@@ -42,12 +42,14 @@ backend
 │   ├── modules
 │   │   ├── users
 │   │   │   ├── user.controller.ts
+│   │   │   ├── user.controller.spec.ts
 │   │   │   ├── user.model.ts
 │   │   │   ├── user.route.ts
 │   │   │   ├── user.service.ts
 │   │   │   └── user.validation.ts
 │   │   └── images
 │   │       ├── image.controller.ts
+│   │       ├── image.controller.spec.ts
 │   │       ├── image.model.ts
 │   │       ├── image.route.ts
 │   │       ├── image.service.ts
@@ -74,7 +76,7 @@ backend
 
 ---
 
-## 🧩 Tech Stack
+## Tech Stack
 
 - **Node.js**
 - **TypeScript**
@@ -89,7 +91,7 @@ backend
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 
 Create a `.env` file:
 
@@ -103,7 +105,7 @@ CLOUDINARY_API_SECRET=xxxx
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install
@@ -123,7 +125,7 @@ npx prisma migrate dev --name init
 
 ---
 
-## ▶️ Running the Project
+## Running the Project
 
 ### Backend Development
 
@@ -158,7 +160,7 @@ npm run dev
 
 ---
 
-## 🧩 Frontend (Next.js) setup
+## Frontend (Next.js) setup
 
 The repository now includes a minimal GitHub-themed dark frontend in `frontend/` that uses all backend routes.
 
@@ -182,7 +184,7 @@ npm run dev
 
 ---
 
-## 🔑 Authentication Endpoints
+## Authentication Endpoints
 
 | Method | Endpoint | Description |
 |------|--------|------------|
@@ -192,7 +194,7 @@ npm run dev
 
 ---
 
-## 🖼️ Image Endpoints
+## Image Endpoints
 
 | Method | Endpoint | Description |
 |------|--------|------------|
@@ -212,7 +214,7 @@ npm run dev
 - **Middlewares**: Auth & validation
 
 
-## ❌ Error Handling
+## Error Handling
 
 All errors go through a centralized error handler:
 
