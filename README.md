@@ -4,7 +4,7 @@ A production-ready **Node.js + TypeScript backend** for user authentication and 
 
 ---
 
-## 🚀 Features
+##  Features
 
 - 🔐 **JWT Authentication** (Register / Login / Profile)
 - 🖼️ **Image Uploads** using Multer + Cloudinary
@@ -17,7 +17,7 @@ A production-ready **Node.js + TypeScript backend** for user authentication and 
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 backend
@@ -42,12 +42,14 @@ backend
 │   ├── modules
 │   │   ├── users
 │   │   │   ├── user.controller.ts
+│   │   │   ├── user.controller.spec.ts
 │   │   │   ├── user.model.ts
 │   │   │   ├── user.route.ts
 │   │   │   ├── user.service.ts
 │   │   │   └── user.validation.ts
 │   │   └── images
 │   │       ├── image.controller.ts
+│   │       ├── image.controller.spec.ts
 │   │       ├── image.model.ts
 │   │       ├── image.route.ts
 │   │       ├── image.service.ts
