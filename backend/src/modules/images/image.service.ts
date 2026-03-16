@@ -4,6 +4,7 @@ import { publishTransformJob, publishUploadJob } from "../../queue/rabbitmq";
 import CustomError from "../../types/customError";
 import { HttpStatusText } from "../../types/HTTPStatusText";
 import { ImageModel } from "./image.model";
+import { TransformationOptions } from "./image.type";
 
 export class ImageService {
   static async uploadImage(file: Express.Multer.File, userId: number) {
@@ -45,56 +46,140 @@ export class ImageService {
     return cloudinary.url(publicId);
   }
 
-  static async transform(transformations: any, id: string): Promise<string> {
+  static async transform(
+    transformations: TransformationOptions,
+    id: string
+  ): Promise<string> {
     if (!id) {
       throw new CustomError("Image id is required", 400, HttpStatusText.FAIL);
     }
-
     if (!transformations) {
-      throw new CustomError("Transformations are required", 400, HttpStatusText.FAIL);
+      throw new CustomError(
+        "Transformations are required",
+        400,
+        HttpStatusText.FAIL
+      );
     }
-
+ 
     const image = await ImageModel.findByPublicId(id);
     if (!image) {
       throw new CustomError("Image not found", 404, HttpStatusText.FAIL);
     }
-
+ 
     const cacheKey = getTransformKey(id, transformations);
     const cached = await redis.get(cacheKey);
     if (cached) return cached;
-
+ 
     const t: any[] = [];
-
+    console.log("Applying transformations:", transformations);
     if (transformations.resize) {
-      t.push({
-        crop: "fill",
-        width: Number(transformations.resize.width),
-        height: Number(transformations.resize.height),
-      });
+      const { width, height, crop = "fill", gravity = "auto", zoom } = transformations.resize;
+      const layer: any = { crop };
+ 
+      if (width)   layer.width   = Number(width);
+      if (height)  layer.height  = Number(height);
+      if (gravity) layer.gravity = gravity;
+      if (zoom !== undefined) layer.zoom = zoom;
+ 
+      t.push(layer);
     }
-
+ 
     if (transformations.rotate && transformations.rotate !== 0) {
       t.push({ angle: Number(transformations.rotate) });
     }
-
-    if (transformations.filters?.grayscale) {
-      t.push({ effect: "grayscale" });
+ 
+    if (transformations.flip) {
+      switch (transformations.flip) {
+        case "horizontal": t.push({ angle: "hflip" }); break;
+        case "vertical":   t.push({ angle: "vflip" }); break;
+        case "both":
+          t.push({ angle: "hflip" });
+          t.push({ angle: "vflip" });
+          break;
+      }
     }
-
-    if (transformations.filters?.sepia) {
-      t.push({ effect: "sepia" });
+ 
+    if (transformations.adjustments) {
+      const adj = transformations.adjustments;
+ 
+      if (adj.brightness  !== undefined) t.push({ effect: `brightness:${adj.brightness}` });
+      if (adj.contrast    !== undefined) t.push({ effect: `contrast:${adj.contrast}` });
+      if (adj.saturation  !== undefined) t.push({ effect: `saturation:${adj.saturation}` });
+      if (adj.hue         !== undefined) t.push({ effect: `hue:${adj.hue}` });
+      if (adj.vibrance    !== undefined) t.push({ effect: `vibrance:${adj.vibrance}` });
+      if (adj.gamma       !== undefined) t.push({ effect: `gamma:${adj.gamma}` });
+      if (adj.sharpen     !== undefined) t.push({ effect: `sharpen:${adj.sharpen}` });
+      if (adj.unsharpMask !== undefined) t.push({ effect: `unsharp_mask:${adj.unsharpMask}` });
     }
-
+ 
+    if (transformations.filters) {
+      const f = transformations.filters;
+ 
+      if (f.grayscale)          t.push({ effect: "grayscale" });
+      if (f.sepia)              t.push({ effect: "sepia" });
+      if (f.negate)             t.push({ effect: "negate" });
+      if (f.blur    !== undefined) t.push({ effect: `blur:${f.blur}` });
+      if (f.pixelate !== undefined) t.push({ effect: `pixelate:${f.pixelate}` });
+      if (f.vignette !== undefined) t.push({ effect: `vignette:${f.vignette}` });
+      if (f.oilPaint !== undefined) t.push({ effect: `oil_paint:${f.oilPaint}` });
+      if (f.art)                t.push({ effect: `art:${f.art}` });
+ 
+      if (f.cartoonify !== undefined) {
+        t.push({
+          effect: typeof f.cartoonify === "number"
+            ? `cartoonify:${f.cartoonify}`
+            : "cartoonify",
+        });
+      }
+    }
+ 
+    if (transformations.radius !== undefined) {
+      t.push({ radius: transformations.radius });
+    }
+ 
+    if (transformations.border) {
+      const { width, color } = transformations.border;
+      t.push({ border: `${width}px_solid_${color}` });
+    }
+ 
+    if (transformations.background) {
+      t.push({ background: transformations.background });
+    }
+ 
+    if (transformations.watermark) {
+      const wm = transformations.watermark;
+      t.push({
+        overlay: {
+          font_family: wm.fontFamily ?? "Arial",
+          font_size:   wm.fontSize   ?? 40,
+          text:        wm.text,
+          ...(wm.fontColor ? { font_color: wm.fontColor } : {}),
+        },
+        gravity:  wm.gravity ?? "south_east",
+        x:        wm.x       ?? 10,
+        y:        wm.y       ?? 10,
+        opacity:  wm.opacity ?? 60,
+      });
+    }
+ 
+    if (transformations.quality !== undefined) {
+      t.push({ quality: transformations.quality });
+    }
+ 
+    if (transformations.dpr !== undefined) {
+      t.push({ dpr: transformations.dpr });
+    }
+ 
     const url = cloudinary.url(id, {
       transformation: t,
-      format: transformations.format,
+      ...(transformations.format     ? { format: transformations.format }           : {}),
+      ...(transformations.fetchFormat ? { fetch_format: transformations.fetchFormat } : {}),
       secure: true,
     });
-
+ 
     await redis.set(cacheKey, url);
-
     publishTransformJob({ imageId: id, transformations, url });
-
+ 
     return url;
   }
 
