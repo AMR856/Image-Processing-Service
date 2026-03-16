@@ -3,6 +3,7 @@ import amqp from "amqplib";
 let channel: amqp.Channel;
 
 export async function connectRabbitMQ() {
+  console.log(process.env);
   const connection = await amqp.connect(process.env.RABBITMQ_URL!);
   channel = await connection.createChannel();
   await channel.assertQueue("image_transform", { durable: true });
