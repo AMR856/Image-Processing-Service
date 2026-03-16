@@ -48,8 +48,9 @@
     "test": "jest --runInBand --detectOpenHandles --coverage",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "start_worker": "nodemon --watch 'src/worker.ts' --exec 'ts-node' src/worker.ts",
+    "start": "npm run build && concurrently \"npm run server\" \"npm run worker\"",
+    "server": "node dist/server.js",
+    "worker": "nodemon --watch 'src/worker.ts' --exec 'ts-node' src/worker.ts",
     "loadtest": "k6 run scripts/loadtest.k6.js",
     "postinstall": "npm run build"
   },
